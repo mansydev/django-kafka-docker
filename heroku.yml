@@ -1,61 +1,59 @@
-version: '3'
-services:
-  zookeeper:
-    image: confluentinc/cp-zookeeper:latest
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - 22181:2181
-  
-  kafka:
-    image: confluentinc/cp-kafka:latest
-    depends_on:
-      - zookeeper
-    ports:
-      - 29092:29092
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+zookeeper:
+  image: confluentinc/cp-zookeeper:latest
+  environment:
+    ZOOKEEPER_CLIENT_PORT: 2181
+    ZOOKEEPER_TICK_TIME: 2000
+  ports:
+    - 22181:2181
 
-  db:
-    image: mysql:latest
-    restart: always
-    ports:
-      - 3306:3306
-    volumes:
-      - ./db/data:/var/lib/mysql
-    environment:
-       MYSQL_DATABASE: django_backend
-       MYSQL_USER: user
-       MYSQL_PASSWORD: Agmansy0100
-       MYSQL_ROOT_PASSWORD: Agmansy0100
-  adminer:
-    image: adminer
-    restart: always
-    ports:
-      - 8080:8080
-  app:
-    build:
-      context: .
-    ports:
-      - 80:80
-    volumes:
-      - ./task:/task
-    command: >
-      sh -c "sleep 30 &&
-              python manage.py wait_for_db &&
-              python manage.py migrate &&
-              python manage.py runserver 0.0.0.0:80"
-    environment:
-      - DB_HOST=db
-      - DB_NAME=django_backend
-      - DB_USER=user
-      - DB_PASS=Agmansy0100
-      - DB_PORT=3306
-    depends_on:
-      - db
+kafka:
+  image: confluentinc/cp-kafka:latest
+  depends_on:
+    - zookeeper
+  ports:
+    - 29092:29092
+  environment:
+    KAFKA_BROKER_ID: 1
+    KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+    KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+    KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+    KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+db:
+  image: mysql:latest
+  restart: always
+  ports:
+    - 3306:3306
+  volumes:
+    - ./db/data:/var/lib/mysql
+  environment:
+     MYSQL_DATABASE: django_backend
+     MYSQL_USER: user
+     MYSQL_PASSWORD: Agmansy0100
+     MYSQL_ROOT_PASSWORD: Agmansy0100
+adminer:
+  image: adminer
+  restart: always
+  ports:
+    - 8080:8080
+app:
+  build:
+    context: .
+  ports:
+    - 80:80
+  volumes:
+    - ./task:/task
+  command: >
+    sh -c "sleep 30 &&
+            python manage.py wait_for_db &&
+            python manage.py migrate &&
+            python manage.py runserver 0.0.0.0:80"
+  environment:
+    - DB_HOST=db
+    - DB_NAME=django_backend
+    - DB_USER=user
+    - DB_PASS=Agmansy0100
+    - DB_PORT=3306
+  depends_on:
+    - db
